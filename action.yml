@@ -1,5 +1,5 @@
-name: 'Ghjk'
-description: 'Installs ghjk and syncs ports'
+name: 'Ghjk everything'
+description: 'Installs ghjk, syncs ports, cache ghjk envs'
 branding:
   icon: 'box'
   color: 'blue'
