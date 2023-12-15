@@ -1,5 +1,8 @@
-name: 'Setup Ghjk'
+name: 'Ghjk'
 description: 'Installs ghjk and syncs ports'
+branding:
+  icon: 'box'
+  color: 'blue'
 inputs:
   version:
     description: 'Github version/branch to install from'
