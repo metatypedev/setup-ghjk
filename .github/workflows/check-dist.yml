@@ -1,4 +1,4 @@
-# In TypeScript actions, `dist/` is a special directory. When you reference
+# In TypeScript actions, `dist/`(index.js) is a special directory. When you reference
 # an action with the `uses:` property, `dist/index.js` is the code that will be
 # run. For this project, the `dist/index.js` file is transpiled from other
 # source files. This workflow ensures the `dist/` directory contains the
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   check-dist:
-    name: Check dist/
+    name: Check index.js
     runs-on: ubuntu-latest
 
     steps:
@@ -39,26 +39,26 @@ jobs:
         id: install
         run: npm ci
 
-      - name: Build dist/ Directory
+      - name: Build index.js
         id: build
-        run: npm run bundle
+        run: npm run build
 
       # This will fail the workflow if the PR wasn't created by Dependabot.
       - name: Compare Directories
         id: diff
         run: |
-          if [ "$(git diff --ignore-space-at-eol --text dist/ | wc -l)" -gt "0" ]; then
+          if [ "$(git diff --ignore-space-at-eol --text index.js | wc -l)" -gt "0" ]; then
             echo "Detected uncommitted changes after build. See status below:"
-            git diff --ignore-space-at-eol --text dist/
+            git diff --ignore-space-at-eol --text index.js
             exit 1
           fi
 
-      # If `dist/` was different than expected, and this was not a Dependabot
+      # If `index.js` was different than expected, and this was not a Dependabot
       # PR, upload the expected version as a workflow artifact.
       - if: ${{ failure() && steps.diff.outcome == 'failure' }}
         name: Upload Artifact
         id: upload
         uses: actions/upload-artifact@v3
         with:
-          name: dist
-          path: dist/
+          name: index.js
+          path: index.js
