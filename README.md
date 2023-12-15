@@ -16,7 +16,7 @@ steps:
 
 | Input                 | Desc                                                                                               | Default                                                         |
 | --------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `version`             | `Ghjk version/ref to use`.                                                                         | `GHJK_VERSION` or latest Github release from ghjk repo          |
+| `version`             | `Ghjk version/ref to use`.                                                                         | `GHJK_VERSION` or latest GitHub release from ghjk repository.   |
 | `skip-deno-install`   | Avoid installing separate deno and use what's found in environment.                                | `false`                                                         |
 | `installer-url`       | Installer script to use.                                                                           | `https://raw.github.com/metatypedev/ghjk/${version}/install.ts` |
 | `sync`                | Weather or not to run `ghjk ports sync`.                                                           | `true`                                                          |
