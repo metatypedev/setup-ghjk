@@ -23,6 +23,7 @@ jobs:
         id: test-action
         uses: ./
         env:
+          # FIXME: once #14@ghjk lands
           GHJK_VERSION: 6040bb3
 
       - name: Check avail of pnpm

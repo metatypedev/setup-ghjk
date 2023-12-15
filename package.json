@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "lint": "pnpm dlx eslint . -c ./.github/linters/.eslintrc.yml",
+    "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
     "format:write": "prettier --write *",
     "format:check": "prettier --check *",
     "build": "ncc build index.ts -o .",

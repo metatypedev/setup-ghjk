@@ -14,7 +14,7 @@ async function latestGhjkVersion() {
   const resp = await fetch(
     `https://api.github.com/repos/metatypedev/ghjk/releases/latest`
   )
-  if (resp.ok) {
+  if (!resp.ok) {
     throw new Error(
       `error fetching latest ghjk release meta: ${resp.statusText}`
     )
