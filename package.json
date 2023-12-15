@@ -16,8 +16,8 @@
   },
   "scripts": {
     "lint": "pnpm dlx eslint . -c ./.github/linters/.eslintrc.yml",
-    "format:write": "prettier --write index.ts",
-    "format:check": "prettier --check index.ts",
+    "format:write": "prettier --write *",
+    "format:check": "prettier --check *",
     "build": "ncc build index.ts -o .",
     "build:watch": "ncc build index.ts -w -o ."
   },

@@ -1,3 +1,3 @@
-const { main } = require("./index.js");
+const { main } = require('./index.js')
 
-void main();
+void main()

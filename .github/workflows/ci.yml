@@ -25,6 +25,6 @@ jobs:
         env:
           GHJK_VERSION: 6040bb3
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+      - name: Check avail of pnpm
+        shell: bash
+        run: pnpm --version

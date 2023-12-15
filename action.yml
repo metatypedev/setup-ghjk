@@ -5,7 +5,8 @@ inputs:
     description: 'Github version/branch to install from'
     required: false
   skip-deno-install:
-    description: 'Use to avoid share another deno exec already installed in workflow'
+    description:
+      'Use to avoid share another deno exec already installed in workflow'
     required: false
     default: false
   installer-url:
@@ -20,14 +21,17 @@ inputs:
     required: true
     default: false
   cache-save-if:
-    description: "Toggle cache saving. To disable cache restore as well, use cache-disable"
+    description:
+      'Toggle cache saving. To disable cache restore as well, use cache-disable'
     required: true
     default: true
   cache-key-prefix:
     description: 'Prefix to use for the cache key. v0-ghjk by default'
     required: false
   cache-key-env-vars:
-    description: "Additional environment variables to include in the cache key, separated by comma."
+    description:
+      'Additional environment variables to include in the cache key, separated
+      by comma.'
     required: false
 
 runs:
