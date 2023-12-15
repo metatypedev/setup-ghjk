@@ -1,24 +1,41 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Add your action's branding here. This will appear on the GitHub Marketplace.
-branding:
-  icon: 'heart'
-  color: 'red'
-
-# Define your inputs here.
+name: 'Setup Ghjk'
+description: 'Installs ghjk and syncs ports'
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  version:
+    description: 'Github version/branch to install from'
+    required: false
+  skip-deno-install:
+    description:
+      'Use to avoid share another deno exec already installed in workflow'
+    required: false
+    default: false
+  installer-url:
+    description: 'Alternative installer script to use'
+    required: false
+  sync:
+    description: 'Disable to skip syncing ports'
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+    default: true
+  cache-disable:
+    description: 'Enable to skip caching the GHJK dir'
+    required: true
+    default: false
+  cache-save-if:
+    description:
+      'Toggle cache saving. To disable cache restore as well, use cache-disable'
+    required: true
+    default: true
+  cache-key-prefix:
+    description: 'Prefix to use for the cache key. v0-ghjk by default'
+    required: false
+  cache-key-env-vars:
+    description:
+      'Additional environment variables to include in the cache key, separated
+      by comma.'
+    required: false
 
 runs:
   using: node20
-  main: dist/index.js
+  main: ./main.cjs
+  post: ./post.cjs
+  post-if: "success() || env.CACHE_ON_FAILURE == 'true'"
