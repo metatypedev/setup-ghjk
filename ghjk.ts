@@ -1,11 +1,11 @@
-export { ghjk } from "https://raw.github.com/metatypedev/ghjk/6040bb3/mod.ts";
+export { ghjk } from "https://raw.github.com/metatypedev/ghjk/0666c3cc/mod.ts";
 import {
   $,
   install,
-} from "https://raw.github.com/metatypedev/ghjk/6040bb3/mod.ts";
-import node from "https://raw.github.com/metatypedev/ghjk/6040bb3/ports/node.ts";
-import pnpm from "https://raw.github.com/metatypedev/ghjk/6040bb3/ports/pnpm.ts";
-import act from "https://raw.github.com/metatypedev/ghjk/6040bb3/ports/act.ts";
+} from "https://raw.github.com/metatypedev/ghjk/0666c3cc/mod.ts";
+import node from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/node.ts";
+import pnpm from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/pnpm.ts";
+import act from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/act.ts";
 
 install(
   node({
