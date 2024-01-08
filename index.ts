@@ -39,6 +39,11 @@ export async function main(): Promise<void> {
     const inputCacheSaveIf = core.getInput('cache-save-if')
     const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars')
 
+    process.env.GHJK_LOG = 'debug'
+    const denoCache = path.resolve(os.homedir(), '.cache', 'deno')
+    process.env.DENO_DIR = denoCache
+    process.env.GHJK_INSTALL_DENO_DIR = denoCache
+
     const version =
       inputVersion.length > 0
         ? inputVersion
@@ -60,8 +65,8 @@ export async function main(): Promise<void> {
     const configStr = (await exec.getExecOutput('ghjk', ['print', 'config']))
       .stdout
 
-    const ghjkDir = (
-      await exec.getExecOutput('ghjk', ['print', 'ghjk-dir-path'], {
+    const shareDir = (
+      await exec.getExecOutput('ghjk', ['print', 'share-dir-path'], {
         silent: true
       })
     ).stdout.trim()
@@ -72,7 +77,7 @@ export async function main(): Promise<void> {
       ).stdout.trim()
 
       const configPath = (
-        await exec.getExecOutput('ghjk', ['print', 'config-path'], {
+        await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
           silent: true
         })
       ).stdout.trim()
@@ -102,9 +107,9 @@ export async function main(): Promise<void> {
         inputCacheKeyPrefix.length > 0 ? inputCacheKeyPrefix : 'v0-ghjk'
       const key = `${keyPrefix}-${hash}`
 
-      const envsDir = core.toPlatformPath(path.resolve(ghjkDir, 'envs'))
-      const cacheDirs = [envsDir]
-      core.info(JSON.stringify({ cacheDirs, envsDir, ghjkDir }))
+      const portsDir = core.toPlatformPath(path.resolve(shareDir, 'ports'))
+      const cacheDirs = [portsDir, denoCache]
+      core.info(JSON.stringify({ cacheDirs, portsDir }))
       // NOTE: restoreCache modifies the array it's given for some reason
       await cache.restoreCache([...cacheDirs], key)
       if (inputCacheSaveIf === 'true') {
@@ -121,9 +126,9 @@ export async function main(): Promise<void> {
       await exec.exec('ghjk', ['ports', 'sync'])
     }
 
-    core.setOutput('GHJK_DIR', ghjkDir)
-    core.exportVariable('GHJK_DIR', ghjkDir)
-    core.exportVariable('BASH_ENV', `${ghjkDir}/env.sh`)
+    core.exportVariable('BASH_ENV', `${shareDir}/env.bash`)
+    core.exportVariable('GHJK_SHARE_DIR', shareDir)
+    core.exportVariable('GHJK_DENO_DIR', denoCache)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
