@@ -81725,7 +81725,7 @@ async function main() {
         const inputCacheSaveIf = core.getInput('cache-save-if');
         const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars');
         process.env.GHJK_LOG = 'debug';
-        const denoCache = '/ghjk-deno-dir';
+        const denoCache = path.resolve(os.homedir(), '.cache', 'deno');
         process.env.DENO_DIR = denoCache;
         process.env.GHJK_INSTALL_DENO_DIR = denoCache;
         const version = inputVersion.length > 0
@@ -81785,6 +81785,8 @@ async function main() {
             await exec.exec('ghjk', ['ports', 'sync']);
         }
         core.exportVariable('BASH_ENV', `${shareDir}/env.bash`);
+        core.exportVariable('GHJK_SHARE_DIR', shareDir);
+        core.exportVariable('GHJK_DENO_DIR', denoCache);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
