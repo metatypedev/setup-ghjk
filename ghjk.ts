@@ -1,9 +1,9 @@
-export { ghjk } from "https://raw.github.com/metatypedev/ghjk/702b6f4/mod.ts";
+export { ghjk } from "https://raw.github.com/metatypedev/ghjk/6d01aaa/mod.ts";
 import {
   $,
   install,
-} from "https://raw.github.com/metatypedev/ghjk/702b6f4/mod.ts";
-import * as ports from "https://raw.github.com/metatypedev/ghjk/702b6f4/ports/mod.ts";
+} from "https://raw.github.com/metatypedev/ghjk/6d01aaa/mod.ts";
+import * as ports from "https://raw.github.com/metatypedev/ghjk/6d01aaa/ports/mod.ts";
 
 install(
   ports.node({

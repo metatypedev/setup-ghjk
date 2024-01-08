@@ -39,6 +39,8 @@ export async function main(): Promise<void> {
     const inputCacheSaveIf = core.getInput('cache-save-if')
     const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars')
 
+    process.env.GHJK_LOG = 'debug'
+
     const version =
       inputVersion.length > 0
         ? inputVersion
