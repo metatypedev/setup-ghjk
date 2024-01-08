@@ -81734,12 +81734,12 @@ async function main() {
         core.addPath(execDir);
         const configStr = (await exec.getExecOutput('ghjk', ['print', 'config']))
             .stdout;
-        const ghjkDir = (await exec.getExecOutput('ghjk', ['print', 'ghjk-dir-path'], {
+        const shareDir = (await exec.getExecOutput('ghjk', ['print', 'share-dir-path'], {
             silent: true
         })).stdout.trim();
         if (inputCacheDisable === 'false' && cache.isFeatureAvailable()) {
             const ghjkVersion = (await exec.getExecOutput('ghjk', ['--version'], { silent: true })).stdout.trim();
-            const configPath = (await exec.getExecOutput('ghjk', ['print', 'config-path'], {
+            const configPath = (await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
                 silent: true
             })).stdout.trim();
             const hasher = crypto_1.default.createHash('sha1');
@@ -81763,9 +81763,9 @@ async function main() {
             const hash = hasher.digest('hex');
             const keyPrefix = inputCacheKeyPrefix.length > 0 ? inputCacheKeyPrefix : 'v0-ghjk';
             const key = `${keyPrefix}-${hash}`;
-            const envsDir = core.toPlatformPath(path.resolve(ghjkDir, 'envs'));
-            const cacheDirs = [envsDir];
-            core.info(JSON.stringify({ cacheDirs, envsDir, ghjkDir }));
+            const portsDir = core.toPlatformPath(path.resolve(shareDir, 'ports'));
+            const cacheDirs = [portsDir];
+            core.info(JSON.stringify({ cacheDirs, portsDir }));
             // NOTE: restoreCache modifies the array it's given for some reason
             await cache.restoreCache([...cacheDirs], key);
             if (inputCacheSaveIf === 'true') {
@@ -81780,9 +81780,7 @@ async function main() {
         if (inputSync === 'true') {
             await exec.exec('ghjk', ['ports', 'sync']);
         }
-        core.setOutput('GHJK_DIR', ghjkDir);
-        core.exportVariable('GHJK_DIR', ghjkDir);
-        core.exportVariable('BASH_ENV', `${ghjkDir}/env.bash`);
+        core.exportVariable('BASH_ENV', `${shareDir}/env.bash`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
