@@ -1,5 +1,8 @@
 name: Continuous Integration
 
+env:
+  GHJK_VERSION: 6d01aaa
+
 on:
   pull_request:
   push:
@@ -22,8 +25,6 @@ jobs:
       - name: Test Local Action
         id: test-action
         uses: ./
-        env:
-          GHJK_VERSION: 702b6f4
 
       - name: Check avail of pnpm
         shell: bash
