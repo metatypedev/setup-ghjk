@@ -23,7 +23,7 @@ jobs:
         id: test-action
         uses: ./
         env:
-          GHJK_VERSION: main
+          GHJK_VERSION: 702b6f4
 
       - name: Check avail of pnpm
         shell: bash
