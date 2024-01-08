@@ -1,22 +1,20 @@
-export { ghjk } from "https://raw.github.com/metatypedev/ghjk/0666c3cc/mod.ts";
+export { ghjk } from "https://raw.github.com/metatypedev/ghjk/702b6f4/mod.ts";
 import {
   $,
   install,
-} from "https://raw.github.com/metatypedev/ghjk/0666c3cc/mod.ts";
-import node from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/node.ts";
-import pnpm from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/pnpm.ts";
-import act from "https://raw.github.com/metatypedev/ghjk/0666c3cc/ports/act.ts";
+} from "https://raw.github.com/metatypedev/ghjk/702b6f4/mod.ts";
+import * as ports from "https://raw.github.com/metatypedev/ghjk/702b6f4/ports/mod.ts";
 
 install(
-  node({
-    version: "v" +
-      await $.path(import.meta.resolve("./.node-version")).readText(),
+  ports.node({
+    version: (await $.path(import.meta.resolve("./.node-version")).readText())
+      .trim(),
   }),
-  pnpm(),
+  ports.pnpm(),
 );
 
 if (!Deno.env.has("CI")) {
   install(
-    act(),
+    ports.act(),
   );
 }
