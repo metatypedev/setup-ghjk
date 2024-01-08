@@ -81725,6 +81725,9 @@ async function main() {
         const inputCacheSaveIf = core.getInput('cache-save-if');
         const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars');
         process.env.GHJK_LOG = 'debug';
+        const denoCache = '/ghjk-deno-dir';
+        process.env.DENO_DIR = denoCache;
+        process.env.GHJK_INSTALL_DENO_DIR = denoCache;
         const version = inputVersion.length > 0
             ? inputVersion
             : process.env['GHJK_VERSION'] ?? (await latestGhjkVersion());
@@ -81765,7 +81768,7 @@ async function main() {
             const keyPrefix = inputCacheKeyPrefix.length > 0 ? inputCacheKeyPrefix : 'v0-ghjk';
             const key = `${keyPrefix}-${hash}`;
             const portsDir = core.toPlatformPath(path.resolve(shareDir, 'ports'));
-            const cacheDirs = [portsDir];
+            const cacheDirs = [portsDir, denoCache];
             core.info(JSON.stringify({ cacheDirs, portsDir }));
             // NOTE: restoreCache modifies the array it's given for some reason
             await cache.restoreCache([...cacheDirs], key);
