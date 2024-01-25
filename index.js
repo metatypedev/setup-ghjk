@@ -81701,7 +81701,7 @@ const os = __importStar(__nccwpck_require__(2037));
 const node_fetch_1 = __importDefault(__nccwpck_require__(467));
 const crypto_1 = __importDefault(__nccwpck_require__(6113));
 // TODO: auto-manage these versions
-const DENO_VERSION = '1.39.0';
+const DENO_VERSION = '1.39.4';
 async function latestGhjkVersion() {
     const resp = await (0, node_fetch_1.default)(`https://api.github.com/repos/metatypedev/ghjk/releases/latest`);
     if (!resp.ok) {

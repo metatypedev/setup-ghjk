@@ -8,7 +8,7 @@ import fetch from 'node-fetch'
 import crypto from 'crypto'
 
 // TODO: auto-manage these versions
-const DENO_VERSION = '1.39.0'
+const DENO_VERSION = '1.39.4'
 
 async function latestGhjkVersion() {
   const resp = await fetch(
