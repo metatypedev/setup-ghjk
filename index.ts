@@ -4,6 +4,7 @@ import * as cache from '@actions/cache'
 import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as os from 'os'
+import * as fs from 'fs/promises'
 import fetch from 'node-fetch'
 import crypto from 'crypto'
 
@@ -81,6 +82,17 @@ export async function main(): Promise<void> {
           silent: true
         })
       ).stdout.trim()
+      const ghjkDirPath = (
+        await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
+          silent: true
+        })
+      ).stdout.trim()
+
+      const lockfilePath = path.resolve(ghjkDirPath, 'lock.json')
+      let lockJson = undefined
+      try {
+        lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' })
+      } catch (_err) {}
 
       const hasher = crypto.createHash('sha1')
 
@@ -88,6 +100,9 @@ export async function main(): Promise<void> {
       hasher.update(configPath)
       // TODO: consider ignoring config to avoid misses just for one dep change
       hasher.update(configStr)
+      if (lockJson) {
+        hasher.update(lockJson)
+      }
 
       const hashedEnvs = [
         'GHJK',
