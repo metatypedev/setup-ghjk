@@ -81755,7 +81755,9 @@ async function main() {
             try {
                 lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' });
             }
-            catch (_err) { }
+            catch (_err) {
+                /* FILE was not found*/
+            }
             const hasher = crypto_1.default.createHash('sha1');
             hasher.update(ghjkVersion);
             hasher.update(configPath);
