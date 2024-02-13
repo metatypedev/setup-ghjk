@@ -81698,6 +81698,7 @@ const cache = __importStar(__nccwpck_require__(7799));
 const exec = __importStar(__nccwpck_require__(1514));
 const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
+const fs = __importStar(__nccwpck_require__(3292));
 const node_fetch_1 = __importDefault(__nccwpck_require__(467));
 const crypto_1 = __importDefault(__nccwpck_require__(6113));
 // TODO: auto-manage these versions
@@ -81746,11 +81747,23 @@ async function main() {
             const configPath = (await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
                 silent: true
             })).stdout.trim();
+            const ghjkDirPath = (await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
+                silent: true
+            })).stdout.trim();
+            const lockfilePath = path.resolve(ghjkDirPath, 'lock.json');
+            let lockJson = undefined;
+            try {
+                lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' });
+            }
+            catch (_err) { }
             const hasher = crypto_1.default.createHash('sha1');
             hasher.update(ghjkVersion);
             hasher.update(configPath);
             // TODO: consider ignoring config to avoid misses just for one dep change
             hasher.update(configStr);
+            if (lockJson) {
+                hasher.update(lockJson);
+            }
             const hashedEnvs = [
                 'GHJK',
                 'DENO',
@@ -81988,6 +82001,14 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3292:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
 
 /***/ }),
 
