@@ -92,7 +92,9 @@ export async function main(): Promise<void> {
       let lockJson = undefined
       try {
         lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' })
-      } catch (_err) {}
+      } catch (_err) {
+        /* FILE was not found*/
+      }
 
       const hasher = crypto.createHash('sha1')
 
