@@ -4,11 +4,12 @@ import * as cache from '@actions/cache'
 import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as os from 'os'
+import * as fs from 'fs/promises'
 import fetch from 'node-fetch'
 import crypto from 'crypto'
 
 // TODO: auto-manage these versions
-const DENO_VERSION = '1.39.0'
+const DENO_VERSION = '1.39.4'
 
 async function latestGhjkVersion() {
   const resp = await fetch(
@@ -39,6 +40,11 @@ export async function main(): Promise<void> {
     const inputCacheSaveIf = core.getInput('cache-save-if')
     const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars')
 
+    process.env.GHJK_LOG = 'debug'
+    const denoCache = path.resolve(os.homedir(), '.cache', 'deno')
+    process.env.DENO_DIR = denoCache
+    process.env.GHJK_INSTALL_DENO_DIR = denoCache
+
     const version =
       inputVersion.length > 0
         ? inputVersion
@@ -60,8 +66,8 @@ export async function main(): Promise<void> {
     const configStr = (await exec.getExecOutput('ghjk', ['print', 'config']))
       .stdout
 
-    const ghjkDir = (
-      await exec.getExecOutput('ghjk', ['print', 'ghjk-dir-path'], {
+    const shareDir = (
+      await exec.getExecOutput('ghjk', ['print', 'share-dir-path'], {
         silent: true
       })
     ).stdout.trim()
@@ -72,10 +78,23 @@ export async function main(): Promise<void> {
       ).stdout.trim()
 
       const configPath = (
-        await exec.getExecOutput('ghjk', ['print', 'config-path'], {
+        await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
           silent: true
         })
       ).stdout.trim()
+      const ghjkDirPath = (
+        await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
+          silent: true
+        })
+      ).stdout.trim()
+
+      const lockfilePath = path.resolve(ghjkDirPath, 'lock.json')
+      let lockJson = undefined
+      try {
+        lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' })
+      } catch (_err) {
+        /* FILE was not found*/
+      }
 
       const hasher = crypto.createHash('sha1')
 
@@ -83,6 +102,9 @@ export async function main(): Promise<void> {
       hasher.update(configPath)
       // TODO: consider ignoring config to avoid misses just for one dep change
       hasher.update(configStr)
+      if (lockJson) {
+        hasher.update(lockJson)
+      }
 
       const hashedEnvs = [
         'GHJK',
@@ -102,9 +124,9 @@ export async function main(): Promise<void> {
         inputCacheKeyPrefix.length > 0 ? inputCacheKeyPrefix : 'v0-ghjk'
       const key = `${keyPrefix}-${hash}`
 
-      const envsDir = core.toPlatformPath(path.resolve(ghjkDir, 'envs'))
-      const cacheDirs = [envsDir]
-      core.info(JSON.stringify({ cacheDirs, envsDir, ghjkDir }))
+      const portsDir = core.toPlatformPath(path.resolve(shareDir, 'ports'))
+      const cacheDirs = [portsDir, denoCache]
+      core.info(JSON.stringify({ cacheDirs, portsDir }))
       // NOTE: restoreCache modifies the array it's given for some reason
       await cache.restoreCache([...cacheDirs], key)
       if (inputCacheSaveIf === 'true') {
@@ -121,9 +143,9 @@ export async function main(): Promise<void> {
       await exec.exec('ghjk', ['ports', 'sync'])
     }
 
-    core.setOutput('GHJK_DIR', ghjkDir)
-    core.exportVariable('GHJK_DIR', ghjkDir)
-    core.exportVariable('BASH_ENV', `${ghjkDir}/env.sh`)
+    core.exportVariable('BASH_ENV', `${shareDir}/env.bash`)
+    core.exportVariable('GHJK_SHARE_DIR', shareDir)
+    core.exportVariable('GHJK_DENO_DIR', denoCache)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
