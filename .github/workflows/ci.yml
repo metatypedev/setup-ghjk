@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 env:
-  GHJK_VERSION: 6d01aaa
+  GHJK_VERSION: 6a00967
 
 on:
   pull_request:

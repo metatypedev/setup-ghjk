@@ -1,5 +1,5 @@
 name: 'Ghjk everything'
-description: 'Installs ghjk, syncs ports, cache ghjk envs'
+description: 'Installs ghjk, cooks environment, cache ghjk envs'
 branding:
   icon: 'box'
   color: 'blue'
@@ -15,8 +15,8 @@ inputs:
   installer-url:
     description: 'Alternative installer script to use'
     required: false
-  sync:
-    description: 'Disable to skip syncing ports'
+  cook:
+    description: 'Disable to skip cooking the active environment.'
     required: true
     default: true
   cache-disable:

@@ -81797,7 +81797,7 @@ async function main() {
             }
         }
         if (inputSync === 'true') {
-            await exec.exec('ghjk', ['ports', 'sync']);
+            await exec.exec('ghjk', ['envs', 'cook']);
         }
         core.exportVariable('BASH_ENV', `${shareDir}/env.bash`);
         core.exportVariable('GHJK_SHARE_DIR', shareDir);
