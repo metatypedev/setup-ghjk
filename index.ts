@@ -140,7 +140,7 @@ export async function main(): Promise<void> {
     }
 
     if (inputSync === 'true') {
-      await exec.exec('ghjk', ['ports', 'sync'])
+      await exec.exec('ghjk', ['envs', 'cook'])
     }
 
     core.exportVariable('BASH_ENV', `${shareDir}/env.bash`)
