@@ -33,7 +33,7 @@ export async function main(): Promise<void> {
   try {
     const inputVersion = core.getInput('version')
     const inputInstallerUrl = core.getInput('installer-url')
-    const inputSync = core.getInput('sync')
+    const inputCook = core.getInput('cook')
     const inputSkipDenoInstall = core.getInput('skip-deno-install')
     const inputCacheDisable = core.getInput('cache-disable')
     const inputCacheKeyPrefix = core.getInput('cache-key-prefix')
@@ -139,7 +139,7 @@ export async function main(): Promise<void> {
       }
     }
 
-    if (inputSync === 'true') {
+    if (inputCook === 'true') {
       await exec.exec('ghjk', ['envs', 'cook'])
     }
 
