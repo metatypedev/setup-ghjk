@@ -4,11 +4,9 @@ import * as cache from '@actions/cache'
 import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as os from 'os'
+import * as fs from 'fs/promises'
 import fetch from 'node-fetch'
 import crypto from 'crypto'
-
-// TODO: auto-manage these versions
-const DENO_VERSION = '1.39.0'
 
 async function latestGhjkVersion() {
   const resp = await fetch(
@@ -32,12 +30,16 @@ export async function main(): Promise<void> {
   try {
     const inputVersion = core.getInput('version')
     const inputInstallerUrl = core.getInput('installer-url')
-    const inputSync = core.getInput('sync')
-    const inputSkipDenoInstall = core.getInput('skip-deno-install')
+    const inputCook = core.getInput('cook')
     const inputCacheDisable = core.getInput('cache-disable')
     const inputCacheKeyPrefix = core.getInput('cache-key-prefix')
     const inputCacheSaveIf = core.getInput('cache-save-if')
     const inputCacheKeyEnvVars = core.getInput('cache-key-env-vars')
+
+    process.env.GHJK_LOG = 'debug'
+    const denoCache = path.resolve(os.homedir(), '.cache', 'deno')
+    process.env.DENO_DIR = denoCache
+    process.env.GHJK_INSTALL_DENO_DIR = denoCache
 
     const version =
       inputVersion.length > 0
@@ -49,19 +51,15 @@ export async function main(): Promise<void> {
         ? inputInstallerUrl
         : `https://raw.github.com/metatypedev/ghjk/${version}/install.ts`
 
-    const execDir = await installGhjk(
-      version,
-      installerUrl,
-      inputSkipDenoInstall === 'true'
-    )
+    const execDir = await installGhjk(version, installerUrl)
 
     core.addPath(execDir)
 
     const configStr = (await exec.getExecOutput('ghjk', ['print', 'config']))
       .stdout
 
-    const ghjkDir = (
-      await exec.getExecOutput('ghjk', ['print', 'ghjk-dir-path'], {
+    const dataDir = (
+      await exec.getExecOutput('ghjk', ['print', 'data-dir-path'], {
         silent: true
       })
     ).stdout.trim()
@@ -72,10 +70,23 @@ export async function main(): Promise<void> {
       ).stdout.trim()
 
       const configPath = (
-        await exec.getExecOutput('ghjk', ['print', 'config-path'], {
+        await exec.getExecOutput('ghjk', ['print', 'ghjkfile-path'], {
           silent: true
         })
       ).stdout.trim()
+      const ghjkDirPath = (
+        await exec.getExecOutput('ghjk', ['print', 'ghjkdir-path'], {
+          silent: true
+        })
+      ).stdout.trim()
+
+      const lockfilePath = path.resolve(ghjkDirPath, 'lock.json')
+      let lockJson = undefined
+      try {
+        lockJson = await fs.readFile(lockfilePath, { encoding: 'utf8' })
+      } catch (_err) {
+        /* FILE was not found*/
+      }
 
       const hasher = crypto.createHash('sha1')
 
@@ -83,6 +94,9 @@ export async function main(): Promise<void> {
       hasher.update(configPath)
       // TODO: consider ignoring config to avoid misses just for one dep change
       hasher.update(configStr)
+      if (lockJson) {
+        hasher.update(lockJson)
+      }
 
       const hashedEnvs = [
         'GHJK',
@@ -102,9 +116,9 @@ export async function main(): Promise<void> {
         inputCacheKeyPrefix.length > 0 ? inputCacheKeyPrefix : 'v0-ghjk'
       const key = `${keyPrefix}-${hash}`
 
-      const envsDir = core.toPlatformPath(path.resolve(ghjkDir, 'envs'))
-      const cacheDirs = [envsDir]
-      core.info(JSON.stringify({ cacheDirs, envsDir, ghjkDir }))
+      const portsDir = core.toPlatformPath(path.resolve(dataDir, 'ports'))
+      const cacheDirs = [portsDir, denoCache]
+      core.info(JSON.stringify({ cacheDirs, portsDir }))
       // NOTE: restoreCache modifies the array it's given for some reason
       await cache.restoreCache([...cacheDirs], key)
       if (inputCacheSaveIf === 'true') {
@@ -117,71 +131,21 @@ export async function main(): Promise<void> {
       }
     }
 
-    if (inputSync === 'true') {
-      await exec.exec('ghjk', ['ports', 'sync'])
+    if (inputCook === 'true') {
+      await exec.exec('ghjk', ['envs', 'cook'])
     }
 
-    core.setOutput('GHJK_DIR', ghjkDir)
-    core.exportVariable('GHJK_DIR', ghjkDir)
-    core.exportVariable('BASH_ENV', `${ghjkDir}/env.sh`)
+    core.exportVariable('BASH_ENV', `${dataDir}/env.bash`)
+    core.exportVariable('GHJK_SHARE_DIR', dataDir)
+    core.exportVariable('GHJK_DENO_DIR', denoCache)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
 
-export async function installGhjk(
-  version: string,
-  installerUrl: string,
-  skipDenoInstall: boolean
-) {
-  let denoExec = 'deno'
-  if (skipDenoInstall && !process.env['GHJK_INSTALL_DENO_EXEC']) {
-    const denoOut = await exec.getExecOutput('deno', ['--version'])
-    if (denoOut.exitCode !== 0) {
-      throw new Error('skip-deno-install set but no deno binary found')
-    }
-    core.debug(`skipping deno install & using found "deno" bin`)
-  } else {
-    denoExec = await installDeno(process.env['DENO_VERSION'] ?? DENO_VERSION)
-  }
-
-  const foundExecDir = tc.find('ghjk', version)
-  if (foundExecDir.length !== 0) {
-    core.debug(
-      `found cached ghjk tool under version ${version}: ${foundExecDir}`
-    )
-    return foundExecDir
-  } else {
-    core.debug(`unable to find cached ghjk tool under version ${version}`)
-  }
-  core.debug(`installing ghjk using install.ts`)
-
-  const installDir =
-    process.env['GHJK_INSTALL_EXE_DIR'] ??
-    core.toPlatformPath(path.resolve(os.homedir(), '.local', 'bin'))
-  const env: Record<string, string> = {
-    ...(process.env as Record<string, string>),
-    GHJK_INSTALL_EXE_DIR: installDir,
-    SHELL: 'bash'
-  }
-  // NOTE: we make the ghjk bin use whichver deno is avail in path
-  // to avoid it hardcoding the current deno bin path
-  // which won't be the same after tool cache restore
-  env['GHJK_INSTALL_DENO_EXEC'] = 'deno'
-
-  core.debug(JSON.stringify({ denoExec, env }, undefined, '  '))
-  await exec.exec(`"${denoExec}" run -A`, [installerUrl], { env })
-  return await tc.cacheDir(installDir, 'ghjk', version)
-}
-
-export async function installDeno(version: string) {
-  // The following is modified from
-  // <https://github.com/denoland/setup-deno>
-  // MIT License
-  // Copyright (c) 2021 Deno Land
-
-  function zipName() {
+export async function installGhjk(version: string, installerUrl: string) {
+  function archiveName() {
     let arch
     switch (process.arch) {
       case 'arm64':
@@ -202,34 +166,49 @@ export async function installDeno(version: string) {
       case 'darwin':
         platform = 'apple-darwin'
         break
-      case 'win32':
-        platform = 'pc-windows-msvc'
-        break
+      // case 'win32':
+      //   platform = 'pc-windows-msvc'
+      //   break
       default:
         throw new Error(`Unsupported platform ${process.platform}.`)
     }
 
-    return `deno-${arch}-${platform}.zip`
+    return `ghjk-${version}-${arch}-${platform}.tar.gz`
   }
-  const cachedPath = tc.find('ghjk-deno', version)
-  if (cachedPath) {
-    core.info(`Using cached Deno installation from ${cachedPath}.`)
-    core.addPath(cachedPath)
-    return `${cachedPath}/deno`
+  let execFile
+  let execDir = tc.find('ghjk', version)
+  const installDir =
+    process.env['GHJK_INSTALL_EXE_DIR'] ??
+    core.toPlatformPath(path.resolve(os.homedir(), '.local', 'bin'))
+
+  if (execDir.length !== 0) {
+    core.debug(`found cached ghjk tool under version ${version}: ${execDir}`)
+    execFile = `${execDir}/ghjk`
+  } else {
+    core.debug(`unable to find cached ghjk tool under version ${version}`)
+    const fileName = archiveName()
+    const url = `https://github.com/metatypedev/ghjk/releases/download/${version}/${fileName}`
+
+    core.info(`Downloading ghjk from ${url}.`)
+    const archive = await tc.downloadTool(url)
+
+    const extractedFolder = await tc.extractTar(archive)
+
+    execDir = await tc.cacheDir(extractedFolder, 'ghjk', version)
+    core.info(`Cached ghjk to ${execDir}.`)
+
+    execFile = `${execDir}/ghjk`
   }
 
-  const zip = zipName()
-  const url = `https://github.com/denoland/deno/releases/download/v${version}/${zip}`
-
-  core.info(`Downloading Deno from ${url}.`)
-
-  const zipPath = await tc.downloadTool(url)
-  const extractedFolder = await tc.extractZip(zipPath)
-
-  const newCachedPath = await tc.cacheDir(extractedFolder, 'ghjk-deno', version)
-  core.info(`Cached Deno to ${newCachedPath}.`)
-  core.addPath(newCachedPath)
-  return `${newCachedPath}/deno`
+  core.debug(`installing ghjk using install.ts`)
+  const env: Record<string, string> = {
+    ...(process.env as Record<string, string>),
+    GHJK_INSTALL_EXE_DIR: installDir,
+    SHELL: 'bash'
+  }
+  core.debug(JSON.stringify({ execFile, env }, undefined, '  '))
+  await exec.exec(`"${execFile}" deno run -A`, [installerUrl], { env })
+  return execDir
 }
 
 /**

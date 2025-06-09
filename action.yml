@@ -1,5 +1,5 @@
 name: 'Ghjk everything'
-description: 'Installs ghjk, syncs ports, cache ghjk envs'
+description: 'Installs ghjk, cooks environment, cache ghjk envs'
 branding:
   icon: 'box'
   color: 'blue'
@@ -7,16 +7,11 @@ inputs:
   version:
     description: 'Github version/branch to install from'
     required: false
-  skip-deno-install:
-    description:
-      'Use to avoid share another deno exec already installed in workflow'
-    required: false
-    default: false
   installer-url:
     description: 'Alternative installer script to use'
     required: false
-  sync:
-    description: 'Disable to skip syncing ports'
+  cook:
+    description: 'Disable to skip cooking the active environment.'
     required: true
     default: true
   cache-disable:
