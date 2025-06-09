@@ -44,7 +44,7 @@ export async function main(): Promise<void> {
     const version =
       inputVersion.length > 0
         ? inputVersion
-        : (process.env['GHJK_VERSION'] ?? (await latestGhjkVersion()))
+        : process.env['GHJK_VERSION'] ?? (await latestGhjkVersion())
 
     const installerUrl =
       inputInstallerUrl.length > 0
@@ -187,7 +187,7 @@ export async function installGhjk(version: string, installerUrl: string) {
   } else {
     core.debug(`unable to find cached ghjk tool under version ${version}`)
     const fileName = archiveName()
-    const url = `https://github.com/denoland/deno/releases/download/v${version}/${fileName}`
+    const url = `https://github.com/metatypedev/ghjk/releases/download/v${version}/${fileName}`
 
     core.info(`Downloading ghjk from ${url}.`)
     const archive = await tc.downloadTool(url)
