@@ -187,7 +187,7 @@ export async function installGhjk(version: string, installerUrl: string) {
   } else {
     core.debug(`unable to find cached ghjk tool under version ${version}`)
     const fileName = archiveName()
-    const url = `https://github.com/metatypedev/ghjk/releases/download/v${version}/${fileName}`
+    const url = `https://github.com/metatypedev/ghjk/releases/download/${version}/${fileName}`
 
     core.info(`Downloading ghjk from ${url}.`)
     const archive = await tc.downloadTool(url)
